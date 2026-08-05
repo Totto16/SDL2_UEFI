@@ -1,0 +1,12 @@
+[Defines]
+  DEC_SPECIFICATION   = 1.25
+  PACKAGE_NAME                   = SDL2Lib
+  PACKAGE_GUID                   = 65a8b8f3-9e28-4a4c-9077-23531c04dc1c
+  PACKAGE_VERSION                = 2.32.10
+
+[Includes]
+  include/
+
+
+[LibraryClasses]
+  ##TODO

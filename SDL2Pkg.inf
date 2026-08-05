@@ -1,0 +1,26 @@
+[Defines]
+  INF_VERSION = 1.25
+  BASE_NAME = SDL2Lib
+  FILE_GUID = 65a8b8f3-9e28-4a4c-9077-23531c04dc1c
+  MODULE_TYPE = BASE
+  VERSION_STRING = 2.32.10
+  LIBRARY_CLASS = LibSDL2|UEFI_APPLICATION 
+
+[Sources]
+  src/SDL.c
+
+[Packages]
+  MdePkg/MdePkg.dec
+
+[LibraryClasses]
+  UefiLib
+
+[BuildOptions]
+  *_*_*_CC_FLAGS  = -std=c11
+
+  *_*_*_CC_FLAGS = -D__UEFI__
+  *_*_*_CC_FLAGS = "-DEFIAPI=__attribute__((ms_abi))"
+  
+  *_*_*_CC_FLAGS = -fvisibility=hidden
+  *_*_*_CC_FLAGS = -D_REENTRANT
+  *_*_*_CC_FLAGS = -pthread
