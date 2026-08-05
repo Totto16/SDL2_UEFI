@@ -31,8 +31,25 @@
  *  This is the minimal configuration that can be used to build SDL.
  */
 
-#define HAVE_STDARG_H   1
-#define HAVE_STDDEF_H   1
+#define HAVE__EXIT 1
+#define HAVE_STDARG_H    1
+#define HAVE_STDDEF_H    1
+#define HAVE_STDIO_H     1
+#define HAVE_STDLIB_H    1
+#define HAVE_MATH_H      1
+#define HAVE_CEIL        1
+#define HAVE_COPYSIGN    1
+#define HAVE_COS         1
+#define HAVE_EXP         1
+#define HAVE_FABS        1
+#define HAVE_FLOOR       1
+#define HAVE_LOG         1
+#define HAVE_LOG10       1
+#define HAVE_SCALBN      1
+#define HAVE_SIN         1
+#define HAVE_SQRT        1
+#define HAVE_TAN         1
+#define HAVE_MALLOC      1
 
 #if !defined(HAVE_STDINT_H) && !defined(_STDINT_H_)
 /* Most everything except Visual Studio 2008 and earlier has stdint.h now */

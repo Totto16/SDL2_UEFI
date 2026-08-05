@@ -25,4 +25,10 @@
   *_*_*_CC_FLAGS = -fvisibility=hidden
   *_*_*_CC_FLAGS = -D_REENTRANT
   *_*_*_CC_FLAGS = -pthread
-  *_*_*_CC_FLAGS = = -I$(MODULE_DIR)/include
+  *_*_*_CC_FLAGS = -I$(MODULE_DIR)/include
+  *_*_*_CC_FLAGS = -I$(MODULE_DIR)/src
+
+  *_*_*_CC_FLAGS = -I$(WORKSPACE)/StdLib/Include
+
+[BuildOptions.X64]
+  *_*_*_CC_FLAGS = -I$(WORKSPACE)/StdLib/Include/X64
