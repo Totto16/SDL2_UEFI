@@ -240,6 +240,31 @@
 #define __3DS__ 1
 #endif
 
+#if defined(__UEFI__)
+// cross compile undefined
+#ifdef __SSE2__
+#undef __SSE2__
+#endif
+
+#ifdef __linux__
+#undef __linux__
+#endif
+
+// edk2 sdk related defines
+#ifdef TRUE
+#undef TRUE
+#endif
+
+#ifdef FALSE
+#undef FALSE
+#endif
+
+#ifdef ABS
+#undef ABS
+#endif
+
+#endif
+
 #include "begin_code.h"
 /* Set up for C function definitions, even when using C++ */
 #ifdef __cplusplus

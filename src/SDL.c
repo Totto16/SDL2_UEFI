@@ -580,6 +580,8 @@ const char *SDL_GetPlatform(void)
     return "AIX";
 #elif defined(__ANDROID__)
     return "Android";
+#elif defined(__UEFI__)
+    return "Uefi";
 #elif defined(__BSDI__)
     return "BSDI";
 #elif defined(__DREAMCAST__)

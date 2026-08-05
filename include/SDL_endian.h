@@ -56,7 +56,7 @@ _m_prefetch(void *__P)
 /* @} */
 
 #ifndef SDL_BYTEORDER           /* Not defined in SDL_config.h? */
-#ifdef __linux__
+#if defined(__linux__) && !defined(__UEFI__)
 #include <endian.h>
 #define SDL_BYTEORDER  __BYTE_ORDER
 #elif defined(__sun) && defined(__SVR4)  /* Solaris */
@@ -71,7 +71,7 @@ _m_prefetch(void *__P)
 #elif defined(__OpenBSD__) || defined(__DragonFly__)
 #include <endian.h>
 #define SDL_BYTEORDER  BYTE_ORDER
-#elif defined(__FreeBSD__) || defined(__NetBSD__)
+#elif defined(__FreeBSD__) || defined(__NetBSD__) || defined(__UEFI__)
 #include <sys/endian.h>
 #define SDL_BYTEORDER  BYTE_ORDER
 /* predefs from newer gcc and clang versions: */

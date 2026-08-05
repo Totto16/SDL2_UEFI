@@ -14,6 +14,7 @@
 
 [LibraryClasses]
   UefiLib
+  LibC
 
 [BuildOptions]
   *_*_*_CC_FLAGS  = -std=c11
@@ -24,3 +25,4 @@
   *_*_*_CC_FLAGS = -fvisibility=hidden
   *_*_*_CC_FLAGS = -D_REENTRANT
   *_*_*_CC_FLAGS = -pthread
+  *_*_*_CC_FLAGS = = -I$(MODULE_DIR)/include
