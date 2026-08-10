@@ -141,6 +141,8 @@
   src/video/yuv2rgb/yuv_rgb_sse.c
   src/video/yuv2rgb/yuv_rgb_std.c
 
+  src/video/uefi/SDL_uefivideo.c
+
 [Packages]
   MdePkg/MdePkg.dec
 
@@ -163,3 +165,8 @@
 
 [BuildOptions.X64]
   *_*_*_CC_FLAGS = -I$(WORKSPACE)/StdLib/Include/X64
+
+[Protocols]
+  gEfiGraphicsOutputProtocolGuid
+  gEfiSimpleTextInputExProtocolGuid
+  gEfiSimplePointerProtocolGuid
