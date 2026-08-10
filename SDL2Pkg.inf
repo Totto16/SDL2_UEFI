@@ -143,6 +143,8 @@
 
   src/video/uefi/SDL_uefivideo.c
   src/video/uefi/SDL_uefiframebuffer.c
+  src/video/uefi/SDL_uefievents.c
+  src/video/uefi/SDL_uefimouse.c
 
 [Packages]
   MdePkg/MdePkg.dec

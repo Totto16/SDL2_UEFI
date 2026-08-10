@@ -18,48 +18,19 @@
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
 */
+
+#ifndef SDL_uefievents_h_
+#define SDL_uefievents_h_
+
 #include "../../SDL_internal.h"
-
-#ifndef SDL_uefivideo_h_
-#define SDL_uefivideo_h_
-
-#include <Uefi.h>
-
-#include <Library/MemoryAllocationLib.h>
-#include <Library/UefiBootServicesTableLib.h>
-#include <Protocol/GraphicsOutput.h>
-#include <Protocol/SimpleTextInEx.h>
-
 #include "../SDL_sysvideo.h"
+#include "./SDL_uefivideo.h"
 
-typedef struct
-{
+/* Functions to be exported */
+extern int UEFI_InitKeyboard(_THIS, SDL_VideoData *driverdata);
+extern void UEFI_QuitKeyboard(_THIS);
+extern void UEFI_PumpEvents(_THIS);
 
-    // graphics section
-    EFI_GRAPHICS_OUTPUT_PROTOCOL *Gop;
-
-    VOID *HWFrameBuffer;
-    // text input section
-    EFI_SIMPLE_TEXT_INPUT_EX_PROTOCOL *InputEx;
-    // mouse inout section
-    // TODO
-    int todo;
-} SDL_VideoData;
-
-typedef struct SDL_WindowData
-{
-    SDL_VideoData *video_ref;
-} SDL_WindowData;
-
-typedef struct
-{
-    UINT32 HorizontalResolution;
-    UINT32 VerticalResolution;
-    EFI_GRAPHICS_PIXEL_FORMAT PixelFormat;
-    UINT32 PixelsPerScanLine;
-    UINT32 ModeIdx;
-} ModeDriverData;
-
-#endif /* SDL_uefivideo_h_ */
+#endif /* SDL_uefievents_h_ */
 
 /* vi: set sts=4 ts=4 sw=4 expandtab: */

@@ -23,7 +23,9 @@
 #ifdef SDL_VIDEO_DRIVER_UEFI
 
 #include "../SDL_sysvideo.h"
+#include "SDL_uefievents.h"
 #include "SDL_uefiframebuffer_c.h"
+#include "SDL_uefimouse.h"
 #include "SDL_uefivideo.h"
 
 #define UEFIVID_DRIVER_NAME "uefi"
@@ -103,8 +105,6 @@ static SDL_VideoDevice *UEFI_CreateDevice(void)
     device->DestroyWindow = UEFI_DestroyWindow;
 
     device->HasScreenKeyboardSupport = SDL_FALSE;
-    device->StartTextInput = NULL;
-    device->StopTextInput = NULL;
 
     device->PumpEvents = UEFI_PumpEvents;
 
@@ -154,6 +154,17 @@ static int UEFI_VideoInit(_THIS)
 
     AddUEFIDisplay(driverdata);
 
+    int err = UEFI_InitKeyboard(_this, driverdata);
+    if (err != 0) {
+        return err;
+    }
+
+    err = UEFI_InitMouse(_this, driverdata);
+    if (err != 0) {
+        return err;
+    }
+
+    return 0;
     return 0;
 }
 
@@ -224,6 +235,9 @@ AddUEFIDisplay(SDL_VideoData *video_ref)
 static void UEFI_VideoQuit(_THIS)
 {
     SDL_VideoData *driverdata = (SDL_VideoData *)_this->driverdata;
+
+    UEFI_QuitMouse(_this);
+    UEFI_QuitKeyboard(_this);
 
     driverdata->Gop = NULL;
     driverdata->HWFrameBuffer = NULL;

@@ -20,46 +20,28 @@
 */
 #include "../../SDL_internal.h"
 
-#ifndef SDL_uefivideo_h_
-#define SDL_uefivideo_h_
+#ifdef SDL_VIDEO_DRIVER_UEFI
 
-#include <Uefi.h>
+#include "SDL_uefievents.h"
+#include "SDL_uefimouse.h"
+#include "SDL_uefivideo.h"
 
-#include <Library/MemoryAllocationLib.h>
-#include <Library/UefiBootServicesTableLib.h>
-#include <Protocol/GraphicsOutput.h>
-#include <Protocol/SimpleTextInEx.h>
+#include <SDL_keyboard_c.h>
+#include <SDL_scancode.h>
 
-#include "../SDL_sysvideo.h"
-
-typedef struct
+int UEFI_InitMouse(_THIS, SDL_VideoData *driverdata)
 {
 
-    // graphics section
-    EFI_GRAPHICS_OUTPUT_PROTOCOL *Gop;
-
-    VOID *HWFrameBuffer;
-    // text input section
-    EFI_SIMPLE_TEXT_INPUT_EX_PROTOCOL *InputEx;
-    // mouse inout section
     // TODO
-    int todo;
-} SDL_VideoData;
+    return 0;
+}
 
-typedef struct SDL_WindowData
+void UEFI_QuitMouse(_THIS)
 {
-    SDL_VideoData *video_ref;
-} SDL_WindowData;
+    // NOOP
+    // TODO: is this really a noop?
+}
 
-typedef struct
-{
-    UINT32 HorizontalResolution;
-    UINT32 VerticalResolution;
-    EFI_GRAPHICS_PIXEL_FORMAT PixelFormat;
-    UINT32 PixelsPerScanLine;
-    UINT32 ModeIdx;
-} ModeDriverData;
-
-#endif /* SDL_uefivideo_h_ */
+#endif /* SDL_VIDEO_DRIVER_UEFI */
 
 /* vi: set sts=4 ts=4 sw=4 expandtab: */
