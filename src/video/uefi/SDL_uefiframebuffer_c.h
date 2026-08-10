@@ -18,40 +18,16 @@
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
 */
+
+#ifndef SDL_uefiframebuffer_c_h_
+#define SDL_uefiframebuffer_c_h_
+
 #include "../../SDL_internal.h"
 
-#ifndef SDL_uefivideo_h_
-#define SDL_uefivideo_h_
+int SDL_UEFI_CreateWindowFramebuffer(_THIS, SDL_Window *window, Uint32 *format, void **pixels, int *pitch);
+int SDL_UEFI_UpdateWindowFramebuffer(_THIS, SDL_Window *window, const SDL_Rect *rects, int numrects);
+void SDL_UEFI_DestroyWindowFramebuffer(_THIS, SDL_Window *window);
 
-#include <Uefi.h>
-
-#include <Library/MemoryAllocationLib.h>
-#include <Library/UefiBootServicesTableLib.h>
-#include <Protocol/GraphicsOutput.h>
-
-#include "../SDL_sysvideo.h"
-
-typedef struct
-{
-    EFI_GRAPHICS_OUTPUT_PROTOCOL *Gop;
-
-    UINT32 Width;
-    UINT32 Height;
-    UINT32 Pitch;
-    UINT32 BytesPerPixel;
-
-    EFI_GRAPHICS_PIXEL_FORMAT PixelFormat;
-
-    VOID *HWFrameBuffer;
-
-    SDL_Window *Window;
-} SDL_VideoData;
-
-typedef struct SDL_WindowData
-{
-    EFI_GRAPHICS_OUTPUT_PROTOCOL *Gop;
-} SDL_WindowData;
-
-#endif /* SDL_uefivideo_h_ */
+#endif /* SDL_uefiframebuffer_c_h_ */
 
 /* vi: set sts=4 ts=4 sw=4 expandtab: */

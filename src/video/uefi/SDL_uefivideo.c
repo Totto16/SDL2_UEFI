@@ -23,9 +23,12 @@
 #ifdef SDL_VIDEO_DRIVER_UEFI
 
 #include "../SDL_sysvideo.h"
+#include "SDL_uefiframebuffer_c.h"
 #include "SDL_uefivideo.h"
 
 #define UEFIVID_DRIVER_NAME "uefi"
+
+SDL_FORCE_INLINE int AddUEFIDisplay(EFI_GRAPHICS_OUTPUT_PROTOCOL *Gop);
 
 static int UEFI_VideoInit(_THIS);
 static void UEFI_VideoQuit(_THIS);
@@ -37,8 +40,7 @@ static void UEFI_DestroyWindow(_THIS, SDL_Window *window);
 
 typedef struct
 {
-    // TODO:
-    int todo;
+    EFI_GRAPHICS_OUTPUT_PROTOCOL *Gop;
 } DisplayDriverData;
 
 typedef struct
@@ -53,11 +55,11 @@ static SDL_PixelFormatEnum UEFI_get_SDL_Format(EFI_GRAPHICS_PIXEL_FORMAT gop_for
     switch (gop_format) {
     case PixelRedGreenBlueReserved8BitPerColor:
     {
-        return SDL_PIXELFORMAT_BGRA8888;
+        return SDL_PIXELFORMAT_BGRX8888;
     }
     case PixelBlueGreenRedReserved8BitPerColor:
     {
-        return SDL_PIXELFORMAT_RGBA8888;
+        return SDL_PIXELFORMAT_RGBX8888;
     }
     default:
     {
@@ -113,9 +115,9 @@ static SDL_VideoDevice *UEFI_CreateDevice(void)
 
     device->PumpEvents = UEFI_PumpEvents;
 
-    device->CreateWindowFramebuffer = UEFI_CreateWindowFramebuffer;
-    device->UpdateWindowFramebuffer = UEFI_UpdateWindowFramebuffer;
-    device->DestroyWindowFramebuffer = UEFI_DestroyWindowFramebuffer;
+    device->CreateWindowFramebuffer = SDL_UEFI_CreateWindowFramebuffer;
+    device->UpdateWindowFramebuffer = SDL_UEFI_UpdateWindowFramebuffer;
+    device->DestroyWindowFramebuffer = SDL_UEFI_DestroyWindowFramebuffer;
 
     device->free = UEFI_DeleteDevice;
 
@@ -157,12 +159,70 @@ static int UEFI_VideoInit(_THIS)
     driverdata->Pitch =
         Gop->Mode->Info->PixelsPerScanLine * 4;
 
-    driverdata->FrameBuffer =
+    driverdata->HWFrameBuffer =
         (VOID *)(UINTN)Gop->Mode->FrameBufferBase;
 
     driverdata->PixelFormat = Gop->Mode->Info->PixelFormat;
 
+    AddUEFIDisplay(Gop);
+
     return 0;
+}
+
+static int UEFI_Init_SDL_DisplayMode(EFI_GRAPHICS_OUTPUT_MODE_INFORMATION *Info, OUT SDL_DisplayMode *sdl_mode, UINT32 Mode)
+{
+    ModeDriverData *modedata = SDL_malloc(sizeof(ModeDriverData));
+    if (!modedata) {
+        return 1;
+    }
+
+    SDL_zero(*sdl_mode);
+
+    sdl_mode->w = Info->VerticalResolution;
+
+    sdl_mode->h = Info->HorizontalResolution;
+    sdl_mode->refresh_rate = 60;
+    sdl_mode->format = UEFI_get_SDL_Format(Info->PixelFormat);
+
+    if (sdl_mode->format == SDL_PIXELFORMAT_UNKNOWN) {
+        SDL_free(modedata);
+        return 1;
+    }
+
+    sdl_mode->driverdata = modedata;
+    modedata->PixelFormat = Info->PixelFormat;
+    // TODO: use Pitch and PixelsPerScanLine correctly in every function that deals with the raw framebuffer
+    modedata->Pitch =
+        Info->PixelsPerScanLine * 4;
+    modedata->Mode = Mode;
+
+    return 0;
+}
+
+SDL_FORCE_INLINE int
+AddUEFIDisplay(EFI_GRAPHICS_OUTPUT_PROTOCOL *Gop)
+{
+    SDL_VideoDisplay display;
+    DisplayDriverData *display_driver_data = SDL_calloc(1, sizeof(DisplayDriverData));
+    if (!display_driver_data) {
+        return SDL_OutOfMemory();
+    }
+
+    SDL_zero(display);
+
+    display_driver_data->Gop = Gop;
+
+    SDL_DisplayMode sdl_mode;
+    if (UEFI_Init_SDL_DisplayMode(Gop->Mode->Info, &sdl_mode, Gop->Mode->Mode) != 0) {
+        return SDL_SetError("Can't init SDL Display mode");
+    }
+
+    display.name = "UEFI GOP Full screen";
+    display.desktop_mode = sdl_mode;
+    display.current_mode = sdl_mode;
+    display.driverdata = display_driver_data;
+
+    return SDL_AddVideoDisplay(&display, SDL_FALSE);
 }
 
 static void UEFI_VideoQuit(_THIS)
@@ -173,9 +233,9 @@ static void UEFI_VideoQuit(_THIS)
 
 static void UEFI_GetDisplayModes(_THIS, SDL_VideoDisplay *display)
 {
-    SDL_VideoData *videodata = _this->driverdata;
+    DisplayDriverData *displaydata = display->driverdata;
 
-    EFI_GRAPHICS_OUTPUT_PROTOCOL *Gop = videodata->Gop;
+    EFI_GRAPHICS_OUTPUT_PROTOCOL *Gop = displaydata->Gop;
 
     for (UINT32 Mode = 0; Mode < Gop->Mode->MaxMode; ++Mode) {
         EFI_GRAPHICS_OUTPUT_MODE_INFORMATION *Info = NULL;
@@ -194,42 +254,27 @@ static void UEFI_GetDisplayModes(_THIS, SDL_VideoDisplay *display)
             continue;
         }
 
-        ModeDriverData *modedata = SDL_malloc(sizeof(ModeDriverData));
-        if (!modedata)
-            continue;
-
         SDL_DisplayMode sdl_mode;
-        SDL_zero(sdl_mode);
-
-        sdl_mode.w = Info->VerticalResolution;
-
-        sdl_mode.h = Info->HorizontalResolution;
-        sdl_mode.refresh_rate = 60;
-        sdl_mode.format = UEFI_get_SDL_Format(Info->PixelFormat);
-
-        if (sdl_mode.format == SDL_PIXELFORMAT_UNKNOWN) {
+        if (UEFI_Init_SDL_DisplayMode(Info, &sdl_mode, Mode) != 0) {
             continue;
         }
-
-        sdl_mode.driverdata = modedata;
-        modedata->PixelFormat = Info->PixelFormat;
-        modedata->Pitch =
-            Info->PixelsPerScanLine * 4;
-        modedata->Mode = Mode;
 
         if (!SDL_AddDisplayMode(display, &sdl_mode)) {
-            SDL_free(modedata);
+            SDL_LogError(SDL_LOG_CATEGORY_VIDEO,
+                         "Can't add mode (%u): SDL_AddDisplayMode failed\n",
+                         Mode);
         }
+
         FreePool(Info);
     }
 }
 
 static int UEFI_SetDisplayMode(_THIS, SDL_VideoDisplay *display, SDL_DisplayMode *mode)
 {
+    DisplayDriverData *driver_data = (DisplayDriverData *)display->driverdata;
     ModeDriverData *modedata = mode->driverdata;
-    SDL_VideoData *videodata = _this->driverdata;
 
-    EFI_GRAPHICS_OUTPUT_PROTOCOL *Gop = videodata->Gop;
+    EFI_GRAPHICS_OUTPUT_PROTOCOL *Gop = driver_data->Gop;
 
     EFI_STATUS Status = Gop->SetMode(Gop, modedata->Mode);
     if (EFI_ERROR(Status)) {
@@ -261,10 +306,8 @@ static int UEFI_CreateWindow(_THIS, SDL_Window *window)
         return SDL_OutOfMemory();
     }
     display_data = (DisplayDriverData *)SDL_GetDisplayDriverData(window->display_index);
-    // TODO
-    window_data->todo = display_data->todo;
+    window_data->Gop = display_data->Gop;
     window->driverdata = window_data;
-    SDL_SetKeyboardFocus(window);
     return 0;
 }
 

@@ -142,6 +142,7 @@
   src/video/yuv2rgb/yuv_rgb_std.c
 
   src/video/uefi/SDL_uefivideo.c
+  src/video/uefi/SDL_uefiframebuffer.c
 
 [Packages]
   MdePkg/MdePkg.dec
