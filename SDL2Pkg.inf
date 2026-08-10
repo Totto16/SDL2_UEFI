@@ -173,3 +173,4 @@
   gEfiGraphicsOutputProtocolGuid
   gEfiSimpleTextInputExProtocolGuid
   gEfiSimplePointerProtocolGuid
+  gEfiAbsolutePointerProtocolGuid

@@ -32,7 +32,11 @@
 
 #include "../SDL_sysvideo.h"
 
-typedef struct
+typedef struct SDL_VideoData SDL_VideoData;
+
+#include "./SDL_uefimouse.h"
+
+struct SDL_VideoData
 {
 
     // graphics section
@@ -41,10 +45,10 @@ typedef struct
     VOID *HWFrameBuffer;
     // text input section
     EFI_SIMPLE_TEXT_INPUT_EX_PROTOCOL *InputEx;
-    // mouse inout section
-    // TODO
+    // mouse input section
+    SDL_MouseData mouse_data;
     int todo;
-} SDL_VideoData;
+};
 
 typedef struct SDL_WindowData
 {

@@ -28,11 +28,59 @@
 
 #include <SDL_keyboard_c.h>
 #include <SDL_scancode.h>
+#include <stdbool.h>
 
 int UEFI_InitMouse(_THIS, SDL_VideoData *driverdata)
 {
 
-    // TODO
+    SDL_MouseData *mouse_data = &(driverdata->mouse_data);
+
+    *mouse_data = (SDL_MouseData){ .type = SDL_MOUSETYPE_NONE, .data = { NULL } };
+
+    // prefer simple / rel over absolute, if none could be found, ignore it
+
+    EFI_SIMPLE_POINTER_PROTOCOL *SimpleMouse;
+
+    EFI_STATUS Status = gBS->LocateProtocol(
+        &gEfiSimplePointerProtocolGuid,
+        NULL,
+        (VOID **)&SimpleMouse);
+
+    if (!EFI_ERROR(Status)) {
+
+        Status = SimpleMouse->Reset(SimpleMouse, false);
+
+        if (EFI_ERROR(Status)) {
+            goto try_abs_mouse;
+        }
+
+        *mouse_data = (SDL_MouseData){ .type = SDL_MOUSETYPE_REL, .data = { .rel = SimpleMouse } };
+        return 0;
+    }
+
+try_abs_mouse:
+
+    EFI_ABSOLUTE_POINTER_PROTOCOL *AbsMouse;
+
+    Status = gBS->LocateProtocol(
+        &gEfiAbsolutePointerProtocolGuid,
+        NULL,
+        (VOID **)&AbsMouse);
+
+    if (!EFI_ERROR(Status)) {
+
+        Status = AbsMouse->Reset(AbsMouse, false);
+
+        if (EFI_ERROR(Status)) {
+            goto all_mouse_failed;
+        }
+
+        *mouse_data = (SDL_MouseData){ .type = SDL_MOUSETYPE_ABS, .data = { .abs = AbsMouse } };
+        return 0;
+    }
+
+all_mouse_failed:
+
     return 0;
 }
 

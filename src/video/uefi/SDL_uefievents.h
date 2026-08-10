@@ -27,7 +27,7 @@
 #include "./SDL_uefivideo.h"
 
 /* Functions to be exported */
-extern int UEFI_InitKeyboard(_THIS, SDL_VideoData *driverdata);
+extern int UEFI_InitKeyboard(_THIS, struct SDL_VideoData *driverdata);
 extern void UEFI_QuitKeyboard(_THIS);
 extern void UEFI_PumpEvents(_THIS);
 

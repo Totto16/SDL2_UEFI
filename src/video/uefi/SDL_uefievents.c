@@ -22,9 +22,10 @@
 
 #ifdef SDL_VIDEO_DRIVER_UEFI
 
+#include "SDL_uefivideo.h"
+
 #include "SDL_uefievents.h"
 #include "SDL_uefimouse.h"
-#include "SDL_uefivideo.h"
 
 #include <SDL_keyboard_c.h>
 #include <SDL_scancode.h>

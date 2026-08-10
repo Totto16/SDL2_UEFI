@@ -23,10 +23,33 @@
 #define SDL_uefimouse_h_
 
 #include "../SDL_sysvideo.h"
-#include "./SDL_uefivideo.h"
 
-extern int UEFI_InitMouse(_THIS, SDL_VideoData *driverdata);
+#include <Protocol/AbsolutePointer.h>
+#include <Protocol/SimplePointer.h>
+
+extern int UEFI_InitMouse(_THIS, struct SDL_VideoData *driverdata);
 extern void UEFI_QuitMouse(_THIS);
+
+/**
+ * The blend mode used in SDL_RenderCopy() and drawing operations.
+ */
+typedef enum SDL_MouseType
+{
+    SDL_MOUSETYPE_NONE = 0,
+    SDL_MOUSETYPE_ABS,
+    SDL_MOUSETYPE_REL,
+
+} SDL_MouseType;
+
+typedef struct SDL_MouseData
+{
+    SDL_MouseType type;
+    union
+    {
+        EFI_ABSOLUTE_POINTER_PROTOCOL *abs;
+        EFI_SIMPLE_POINTER_PROTOCOL *rel;
+    } data;
+} SDL_MouseData;
 
 #endif /* SDL_uefimouse_h_ */
 
