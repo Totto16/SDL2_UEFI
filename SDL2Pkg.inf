@@ -72,26 +72,6 @@
   src/joystick/steam/SDL_steamcontroller.c
   src/joystick/virtual/SDL_virtualjoystick.c
   src/joystick/linux/SDL_sysjoystick.c
-  src/libm/e_atan2.c
-  src/libm/e_exp.c
-  src/libm/e_fmod.c
-  src/libm/e_log.c
-  src/libm/e_log10.c
-  src/libm/e_pow.c
-  src/libm/e_rem_pio2.c
-  src/libm/e_sqrt.c
-  src/libm/k_cos.c
-  src/libm/k_rem_pio2.c
-  src/libm/k_sin.c
-  src/libm/k_tan.c
-  src/libm/s_atan.c
-  src/libm/s_copysign.c
-  src/libm/s_cos.c
-  src/libm/s_fabs.c
-  src/libm/s_floor.c
-  src/libm/s_scalbn.c
-  src/libm/s_sin.c
-  src/libm/s_tan.c
   src/loadso/dlopen/SDL_sysloadso.c
   src/loadso/dummy/SDL_sysloadso.c
   src/locale/SDL_locale.c
@@ -123,11 +103,11 @@
   src/stdlib/SDL_string.c
   src/stdlib/SDL_strtokr.c
   src/thread/SDL_thread.c
-#TODO  src/thread/dummy/SDL_syscond.c
-#TODO  src/thread/dummy/SDL_sysmutex.c
-#TODO  src/thread/dummy/SDL_syssem.c
-#TODO  src/thread/dummy/SDL_systhread.c
-#TODO  src/thread/dummy/SDL_systls.c
+  src/thread/generic/SDL_syscond.c
+  src/thread/generic/SDL_sysmutex.c
+  src/thread/generic/SDL_syssem.c
+  src/thread/generic/SDL_systhread.c
+  src/thread/generic/SDL_systls.c
   src/timer/SDL_timer.c
   src/timer/unix/SDL_systimer.c
   src/video/SDL_RLEaccel.c

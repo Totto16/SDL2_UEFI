@@ -52,6 +52,7 @@
 #define HAVE_MALLOC      1
 #define HAVE_POLL        1
 #define HAVE_LIMITS_H    1
+#define HAVE_ATAN2       1
 
 #if !defined(HAVE_STDINT_H) && !defined(_STDINT_H_)
 /* Most everything except Visual Studio 2008 and earlier has stdint.h now */
@@ -83,8 +84,8 @@ typedef unsigned int uintptr_t;
 
 /* Enable the dummy audio driver (src/audio/dummy/\*.c) */
 #define SDL_AUDIO_DRIVER_DUMMY  1
-#define SDL_TIMER_UEFI 1
-#define SDL_FILESYSTEM_UEFI 1
+#define SDL_TIMER_UNIX 1
+#define SDL_FILESYSTEM_UNIX 1
 #define SDL_VIDEO_DRIVER_UEFI    1
 
 /* Enable the stub joystick driver (src/joystick/dummy/\*.c) */
