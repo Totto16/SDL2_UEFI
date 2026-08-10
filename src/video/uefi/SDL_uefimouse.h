@@ -26,9 +26,11 @@
 
 #include <Protocol/AbsolutePointer.h>
 #include <Protocol/SimplePointer.h>
+#include <stdbool.h>
 
 extern int UEFI_InitMouse(_THIS, struct SDL_VideoData *driverdata);
 extern void UEFI_QuitMouse(_THIS);
+extern void UEFI_PumpMouseEvents(_THIS);
 
 /**
  * The blend mode used in SDL_RenderCopy() and drawing operations.
@@ -41,13 +43,20 @@ typedef enum SDL_MouseType
 
 } SDL_MouseType;
 
+typedef struct SDL_MouseStateRel
+{
+    EFI_SIMPLE_POINTER_PROTOCOL *protocol;
+    bool left_button;
+    bool right_button;
+} SDL_MouseStateRel;
+
 typedef struct SDL_MouseData
 {
     SDL_MouseType type;
     union
     {
         EFI_ABSOLUTE_POINTER_PROTOCOL *abs;
-        EFI_SIMPLE_POINTER_PROTOCOL *rel;
+        SDL_MouseStateRel rel;
     } data;
 } SDL_MouseData;
 

@@ -28,7 +28,7 @@
 
 #include <SDL_keyboard_c.h>
 #include <SDL_scancode.h>
-#include <stdbool.h>
+#include <events/SDL_mouse_c.h>
 
 int UEFI_InitMouse(_THIS, SDL_VideoData *driverdata)
 {
@@ -37,7 +37,9 @@ int UEFI_InitMouse(_THIS, SDL_VideoData *driverdata)
 
     *mouse_data = (SDL_MouseData){ .type = SDL_MOUSETYPE_NONE, .data = { NULL } };
 
-    // prefer simple / rel over absolute, if none could be found, ignore it
+    // prefer absolute over simple / rel, if none could be found, ignore it
+    // abs is more accurate, as relative may drift, when absolute is accurate
+    // TODO: do that ^^^^
 
     EFI_SIMPLE_POINTER_PROTOCOL *SimpleMouse;
 
@@ -54,11 +56,23 @@ int UEFI_InitMouse(_THIS, SDL_VideoData *driverdata)
             goto try_abs_mouse;
         }
 
-        *mouse_data = (SDL_MouseData){ .type = SDL_MOUSETYPE_REL, .data = { .rel = SimpleMouse } };
+        *mouse_data = (SDL_MouseData){                            //
+                                       .type = SDL_MOUSETYPE_REL, //
+                                       .data = {                  //
+                                                 .rel = (SDL_MouseStateRel){
+                                                     .protocol = SimpleMouse,
+                                                     .left_button = false,
+                                                     .right_button = false,
+                                                 } }
+
+        };
         return 0;
     }
 
 try_abs_mouse:
+    // TODO: atm we only use the relative
+
+    return 0;
 
     EFI_ABSOLUTE_POINTER_PROTOCOL *AbsMouse;
 
@@ -88,6 +102,125 @@ void UEFI_QuitMouse(_THIS)
 {
     // NOOP
     // TODO: is this really a noop?
+}
+
+static void UEFI_PumpMouseEventsAbs(EFI_ABSOLUTE_POINTER_PROTOCOL *abs)
+{
+    // TODO
+}
+
+#define MOUSE_ID 0
+
+static void UEFI_Push_Mouse_Event_Rel(SDL_MouseStateRel *const rel_state,
+                                      const EFI_SIMPLE_POINTER_STATE *const State)
+{
+
+    const EFI_SIMPLE_POINTER_MODE *const Mode = rel_state->protocol->Mode;
+
+    // TODO: use window for sending events, pay attention to mode changes, or the window size changes, or should we disallow mode changes after the window creation ?!!?
+
+    // TODO: supply window
+    SDL_Window *window = NULL;
+
+    if (Mode->LeftButton) {
+        if (rel_state->left_button != State->LeftButton) {
+            SDL_SendMouseButton(window, MOUSE_ID, State->LeftButton ? SDL_PRESSED : SDL_RELEASED, SDL_BUTTON_LEFT);
+            rel_state->left_button = State->LeftButton;
+        }
+    }
+
+    if (Mode->RightButton) {
+        if (rel_state->right_button != State->RightButton) {
+            SDL_SendMouseButton(window, MOUSE_ID, State->RightButton ? SDL_PRESSED : SDL_RELEASED, SDL_BUTTON_RIGHT);
+            rel_state->right_button = State->RightButton;
+        }
+    }
+
+    if (Mode->ResolutionZ != 0) {
+        // treat the Z axis as scroll wheel X axis
+        // TODO: maybe use the resolution here?
+        if (State->RelativeMovementZ != 0) {
+            SDL_SendMouseWheel(window, MOUSE_ID, (float)State->RelativeMovementZ, 0.0F, SDL_MOUSEWHEEL_NORMAL);
+        }
+    }
+
+    int x_mov = 0;
+    int y_mov = 0;
+
+    bool movement = false;
+
+    if (Mode->ResolutionX != 0 && State->RelativeMovementX != 0) {
+        x_mov = State->RelativeMovementX;
+        movement = true;
+    }
+
+    if (Mode->ResolutionY != 0 && State->RelativeMovementY != 0) {
+        y_mov = State->RelativeMovementY;
+        movement = true;
+    }
+
+    if (!movement) {
+        return;
+    }
+
+    SDL_SendMouseMotion(window, MOUSE_ID, (int)true, x_mov, y_mov);
+}
+
+static void UEFI_PumpMouseEventsRel(SDL_MouseStateRel *const rel)
+{
+
+    EFI_SIMPLE_POINTER_STATE State;
+
+    EFI_STATUS Status = rel->protocol->GetState(rel->protocol, &State);
+
+    if (Status == EFI_NOT_READY) {
+        // no mouse movement ready
+        return;
+    }
+
+    if (EFI_ERROR(Status)) {
+        SDL_LogError(SDL_LOG_CATEGORY_INPUT,
+                     "Error in reading mouse state: %lld\n",
+                     Status);
+        return;
+    }
+
+    UEFI_Push_Mouse_Event_Rel(rel, &State);
+}
+
+void UEFI_PumpMouseEvents(_THIS)
+{
+
+    SDL_VideoData *driverdata = (SDL_VideoData *)_this->driverdata;
+
+    SDL_MouseData *const mouse_data = &(driverdata->mouse_data);
+
+    switch (mouse_data->type) {
+    case SDL_MOUSETYPE_NONE:
+    {
+        // Nothing to do
+        return;
+    }
+
+    case SDL_MOUSETYPE_ABS:
+    {
+        UEFI_PumpMouseEventsAbs(mouse_data->data.abs);
+        return;
+    }
+
+    case SDL_MOUSETYPE_REL:
+    {
+        UEFI_PumpMouseEventsRel(&(mouse_data->data.rel));
+        return;
+    }
+    default:
+    {
+        SDL_LogError(SDL_LOG_CATEGORY_INPUT,
+                     "Invalid mouse input type: %d\n",
+                     mouse_data->type);
+        return;
+    }
+    }
 }
 
 #endif /* SDL_VIDEO_DRIVER_UEFI */

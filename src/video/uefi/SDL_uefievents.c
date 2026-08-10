@@ -314,35 +314,36 @@ static void UEFI_Push_Key_Event(
     }
 }
 
-void UEFI_PumpEvents(_THIS)
+void UEFI_PumpKeyboardEvents(_THIS)
 {
     SDL_VideoData *driverdata = (SDL_VideoData *)_this->driverdata;
 
     EFI_SIMPLE_TEXT_INPUT_EX_PROTOCOL *InputEx = driverdata->InputEx;
 
-    { // check for keystrokes
+    EFI_KEY_DATA KeyData;
 
-        EFI_KEY_DATA KeyData;
+    EFI_STATUS Status = InputEx->ReadKeyStrokeEx(InputEx, &KeyData);
 
-        EFI_STATUS Status = InputEx->ReadKeyStrokeEx(InputEx, &KeyData);
-
-        if (Status == EFI_NOT_READY) {
-            // no keypress ready
-            goto end_keypress_detect;
-        }
-
-        if (EFI_ERROR(Status)) {
-            SDL_LogError(SDL_LOG_CATEGORY_INPUT,
-                         "Error in reading key stroke: %lld\n",
-                         Status);
-            goto end_keypress_detect;
-        }
-
-        UEFI_Push_Key_Event(&KeyData);
+    if (Status == EFI_NOT_READY) {
+        // no keypress ready
+        return;
     }
-end_keypress_detect:
 
-    // TODO
+    if (EFI_ERROR(Status)) {
+        SDL_LogError(SDL_LOG_CATEGORY_INPUT,
+                     "Error in reading key stroke: %lld\n",
+                     Status);
+        return;
+    }
+
+    UEFI_Push_Key_Event(&KeyData);
+}
+
+void UEFI_PumpEvents(_THIS)
+{
+    UEFI_PumpKeyboardEvents(_this);
+
+    UEFI_PumpMouseEvents(_this);
 }
 
 #endif /* SDL_VIDEO_DRIVER_UEFI */

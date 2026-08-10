@@ -295,6 +295,10 @@ static void UEFI_GetDisplayModes(_THIS, SDL_VideoDisplay *display)
 
 static int UEFI_SetDisplayMode(_THIS, SDL_VideoDisplay *display, SDL_DisplayMode *mode)
 {
+
+    // TODO:  should we disallow mode changes after the window creation ?!!?
+    // or do we update the window (the display is already updated (at least I think??))
+
     DisplayDriverData *displaydata = display->driverdata;
     SDL_VideoData *video_ref = displaydata->video_ref;
     EFI_GRAPHICS_OUTPUT_PROTOCOL *Gop = video_ref->Gop;

@@ -29,6 +29,8 @@
 /* Functions to be exported */
 extern int UEFI_InitKeyboard(_THIS, struct SDL_VideoData *driverdata);
 extern void UEFI_QuitKeyboard(_THIS);
+extern void UEFI_PumpKeyboardEvents(_THIS);
+
 extern void UEFI_PumpEvents(_THIS);
 
 #endif /* SDL_uefievents_h_ */
