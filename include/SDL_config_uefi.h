@@ -50,6 +50,8 @@
 #define HAVE_SQRT        1
 #define HAVE_TAN         1
 #define HAVE_MALLOC      1
+#define HAVE_POLL        1
+#define HAVE_LIMITS_H    1
 
 #if !defined(HAVE_STDINT_H) && !defined(_STDINT_H_)
 /* Most everything except Visual Studio 2008 and earlier has stdint.h now */

@@ -67,7 +67,9 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#if  !defined(__UEFI__)
 #include <dlfcn.h>
+#endif
 #endif
 
 /* Available video drivers */
@@ -144,6 +146,9 @@ static VideoBootStrap *bootstrap[] = {
 #endif
 #ifdef SDL_VIDEO_DRIVER_OFFSCREEN
     &OFFSCREEN_bootstrap,
+#endif
+#ifdef SDL_VIDEO_DRIVER_UEFI
+    &UEFI_bootstrap,
 #endif
 #ifdef SDL_VIDEO_DRIVER_DUMMY
     &DUMMY_bootstrap,

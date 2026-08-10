@@ -55,6 +55,10 @@ _m_prefetch(void *__P)
 #endif /* __PRFCHWINTRIN_H */
 #endif /* __clang__ */
 #include <intrin.h>
+
+#if defined(__UEFI__)
+#include "uefi/__hardware_caps.h"
+#else
 #ifndef _WIN64
 #ifndef __MMX__
 #define __MMX__
@@ -69,10 +73,12 @@ _m_prefetch(void *__P)
 #define __SSE__
 #endif
 #ifndef __SSE2__
+#error "NOT SUPPORTED ON UEFI"
 #define __SSE2__
 #endif
 #ifndef __SSE3__
 #define __SSE3__
+#endif
 #endif
 #elif defined(__MINGW64_VERSION_MAJOR)
 #include <intrin.h>

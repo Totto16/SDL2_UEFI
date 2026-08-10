@@ -242,9 +242,7 @@
 
 #if defined(__UEFI__)
 // cross compile undefined
-#ifdef __SSE2__
-#undef __SSE2__
-#endif
+#include "uefi/__hardware_caps.h"
 
 #ifdef __linux__
 #undef __linux__

@@ -63,6 +63,10 @@
 #include "SDL_system.h"
 #endif
 
+#ifdef __UEFI__
+#include <string.h>
+#endif
+
 #ifdef __NACL__
 #include "nacl_io/nacl_io.h"
 #endif

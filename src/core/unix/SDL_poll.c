@@ -24,7 +24,11 @@
 #include "SDL_poll.h"
 
 #ifdef HAVE_POLL
+#if defined(__UEFI__)
+#include <sys/poll.h>
+#else
 #include <poll.h>
+#endif
 #else
 #include <sys/time.h>
 #include <sys/types.h>

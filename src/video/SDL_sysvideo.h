@@ -483,6 +483,7 @@ extern VideoBootStrap QNX_bootstrap;
 extern VideoBootStrap OFFSCREEN_bootstrap;
 extern VideoBootStrap NGAGE_bootstrap;
 extern VideoBootStrap OS2DIVE_bootstrap;
+extern VideoBootStrap UEFI_bootstrap;
 extern VideoBootStrap OS2VMAN_bootstrap;
 
 /* Use SDL_OnVideoThread() sparingly, to avoid regressions in use cases that currently happen to work */
