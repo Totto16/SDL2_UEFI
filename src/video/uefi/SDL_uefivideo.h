@@ -35,22 +35,22 @@ typedef struct
 {
     EFI_GRAPHICS_OUTPUT_PROTOCOL *Gop;
 
-    UINT32 Width;
-    UINT32 Height;
-    UINT32 Pitch;
-    UINT32 BytesPerPixel;
-
-    EFI_GRAPHICS_PIXEL_FORMAT PixelFormat;
-
     VOID *HWFrameBuffer;
-
-    SDL_Window *Window;
 } SDL_VideoData;
 
 typedef struct SDL_WindowData
 {
-    EFI_GRAPHICS_OUTPUT_PROTOCOL *Gop;
+    SDL_VideoData *video_ref;
 } SDL_WindowData;
+
+typedef struct
+{
+    UINT32 HorizontalResolution;
+    UINT32 VerticalResolution;
+    EFI_GRAPHICS_PIXEL_FORMAT PixelFormat;
+    UINT32 PixelsPerScanLine;
+    UINT32 ModeIdx;
+} ModeDriverData;
 
 #endif /* SDL_uefivideo_h_ */
 

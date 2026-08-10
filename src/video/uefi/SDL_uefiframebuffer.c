@@ -28,18 +28,10 @@
 
 #define UEFI_SURFACE "_SDL_UEFISurface"
 
-typedef struct
-{
-    int width, height;
-} Dimensions;
+SDL_FORCE_INLINE int
+CopyFramebuffertoUEFI(SDL_Surface *surface, SDL_VideoData *video_data, ModeDriverData *mode_data);
 
-SDL_FORCE_INLINE void CopyFramebuffertoUEFI_16(uint16_t *dest, const Dimensions dest_dim, const uint16_t *source, const Dimensions source_dim);
-SDL_FORCE_INLINE void CopyFramebuffertoUEFI_24(uint8_t *dest, const Dimensions dest_dim, const uint8_t *source, const Dimensions source_dim);
-SDL_FORCE_INLINE void CopyFramebuffertoUEFI_32(uint32_t *dest, const Dimensions dest_dim, const uint32_t *source, const Dimensions source_dim);
-SDL_FORCE_INLINE int GetDestOffset(int x, int y, int dest_width);
-SDL_FORCE_INLINE int GetSourceOffset(int x, int y, int source_width);
-SDL_FORCE_INLINE void FlushUEFIBuffer(const void *buffer, uint32_t bufsize, EFI_GRAPHICS_OUTPUT_PROTOCOL *Gop);
-
+// TODO: how does sdl2 create / update / delete teh framebuffer, when updating mode? do we need to do that manually or does sdl do that automatically?
 int SDL_UEFI_CreateWindowFramebuffer(_THIS, SDL_Window *window, Uint32 *format, void **pixels, int *pitch)
 {
     SDL_Surface *framebuffer;
@@ -63,114 +55,56 @@ int SDL_UEFI_CreateWindowFramebuffer(_THIS, SDL_Window *window, Uint32 *format, 
     return 0;
 }
 
-static void *UEFI_get_Framebuffer(EFI_GRAPHICS_OUTPUT_PROTOCOL *Gop, OUT uint32_t *width, OUT uint32_t *height)
-{
-    void *FrameBuffer =
-        (VOID *)(UINTN)Gop->Mode->FrameBufferBase;
-
-    *width =
-        Gop->Mode->Info->HorizontalResolution;
-
-    *height =
-        Gop->Mode->Info->VerticalResolution;
-
-    return FrameBuffer;
-}
-
 int SDL_UEFI_UpdateWindowFramebuffer(_THIS, SDL_Window *window, const SDL_Rect *rects, int numrects)
 {
-    SDL_WindowData *drv_data = (SDL_WindowData *)window->driverdata;
-    SDL_Surface *surface;
-    uint32_t width, height;
-    void *framebuffer;
-    uint32_t bufsize;
-
-    surface = (SDL_Surface *)SDL_GetWindowData(window, UEFI_SURFACE);
+    SDL_Surface *surface = (SDL_Surface *)SDL_GetWindowData(window, UEFI_SURFACE);
     if (!surface) {
         return SDL_SetError("%s: Unable to get the window surface.", __func__);
     }
 
-    // TODO: use Pitch and PixelsPerScanLine correctly in every function that deals with the raw framebuffer
-    /* Get the UEFI internal framebuffer and its size */
-    framebuffer = UEFI_get_Framebuffer(drv_data->Gop, &width, &height);
+    SDL_VideoData *video_data = (SDL_VideoData *)_this->driverdata;
 
-    bufsize = width * height * 4;
+    if (surface->format->BytesPerPixel != sizeof(uint32_t)) {
+        return SDL_SetError("%s: Invalid BytesPerPixel: %d.", __func__, surface->format->BytesPerPixel);
+    }
 
-    if (surface->format->BytesPerPixel == 2)
-        CopyFramebuffertoUEFI_16(framebuffer, (Dimensions){ width, height },
-                                 surface->pixels, (Dimensions){ surface->w, surface->h });
-    else if (surface->format->BytesPerPixel == 3)
-        CopyFramebuffertoUEFI_24(framebuffer, (Dimensions){ width, height },
-                                 surface->pixels, (Dimensions){ surface->w, surface->h });
-    else
-        CopyFramebuffertoUEFI_32(framebuffer, (Dimensions){ width, height },
-                                 surface->pixels, (Dimensions){ surface->w, surface->h });
-    FlushUEFIBuffer(framebuffer, bufsize, drv_data->Gop);
+    SDL_DisplayMode mode;
+    SDL_GetCurrentDisplayMode(SDL_GetWindowDisplayIndex(window), &mode);
+
+    ModeDriverData *mode_data = mode.driverdata;
+
+    return CopyFramebuffertoUEFI(surface, video_data, mode_data);
+}
+
+SDL_FORCE_INLINE int
+CopyFramebuffertoUEFI(SDL_Surface *surface, SDL_VideoData *video_data, ModeDriverData *mode_data)
+{
+
+    // NOTE: we assert here, that the surface has the same width and height as the framebuffer, otherwise we forgot to update the surface on mode update!
+    if (surface->w != mode_data->HorizontalResolution || surface->h != mode_data->VerticalResolution) {
+        return SDL_SetError("%s: Surface and Framebuffer dimensions don't match: %dx%d != %ux%u", __func__, surface->w, surface->h, mode_data->HorizontalResolution, mode_data->VerticalResolution);
+    }
+
+    if (SDL_MUSTLOCK(surface)) {
+        int err = SDL_LockSurface(surface);
+        if (err != 0) {
+            return err;
+        }
+    }
+
+    size_t ValidLineSize = mode_data->HorizontalResolution * sizeof(UINT32);
+
+    for (UINT32 y = 0; y < mode_data->VerticalResolution; ++y) {
+        const uint32_t *source = ((uint32_t *)surface->pixels) + (y * surface->w);
+        uint32_t *dest = ((uint32_t *)video_data->HWFrameBuffer) + (y * mode_data->PixelsPerScanLine);
+        SDL_memcpy(dest, source, ValidLineSize);
+    }
+
+    if (SDL_MUSTLOCK(surface)) {
+        SDL_UnlockSurface(surface);
+    }
 
     return 0;
-}
-
-SDL_FORCE_INLINE void
-CopyFramebuffertoUEFI_16(uint16_t *dest, const Dimensions dest_dim, const uint16_t *source, const Dimensions source_dim)
-{
-    int rows = SDL_min(dest_dim.width, source_dim.height);
-    int cols = SDL_min(dest_dim.height, source_dim.width);
-    for (int y = 0; y < rows; ++y) {
-        for (int x = 0; x < cols; ++x) {
-            const uint16_t *s = source + GetSourceOffset(x, y, source_dim.width);
-            uint16_t *d = dest + GetDestOffset(x, y, dest_dim.width);
-            *d = *s;
-        }
-    }
-}
-
-SDL_FORCE_INLINE void
-CopyFramebuffertoUEFI_24(uint8_t *dest, const Dimensions dest_dim, const uint8_t *source, const Dimensions source_dim)
-{
-    int rows = SDL_min(dest_dim.width, source_dim.height);
-    int cols = SDL_min(dest_dim.height, source_dim.width);
-    for (int y = 0; y < rows; ++y) {
-        for (int x = 0; x < cols; ++x) {
-            const uint8_t *s = source + GetSourceOffset(x, y, source_dim.width) * 3;
-            uint8_t *d = dest + GetDestOffset(x, y, dest_dim.width) * 3;
-            d[0] = s[0];
-            d[1] = s[1];
-            d[2] = s[2];
-        }
-    }
-}
-
-SDL_FORCE_INLINE void
-CopyFramebuffertoUEFI_32(uint32_t *dest, const Dimensions dest_dim, const uint32_t *source, const Dimensions source_dim)
-{
-    int rows = SDL_min(dest_dim.width, source_dim.height);
-    int cols = SDL_min(dest_dim.height, source_dim.width);
-    for (int y = 0; y < rows; ++y) {
-        for (int x = 0; x < cols; ++x) {
-            const uint32_t *s = source + GetSourceOffset(x, y, source_dim.width);
-            uint32_t *d = dest + GetDestOffset(x, y, dest_dim.width);
-            *d = *s;
-        }
-    }
-}
-
-SDL_FORCE_INLINE int
-GetDestOffset(int x, int y, int dest_width)
-{
-    return dest_width - y - 1 + dest_width * x;
-}
-
-SDL_FORCE_INLINE int
-GetSourceOffset(int x, int y, int source_width)
-{
-    return x + y * source_width;
-}
-
-SDL_FORCE_INLINE void
-FlushUEFIBuffer(const void *buffer, uint32_t bufsize, EFI_GRAPHICS_OUTPUT_PROTOCOL *Gop)
-{
-    // TODO: check if this really is a no-op
-    //  no-op
 }
 
 void SDL_UEFI_DestroyWindowFramebuffer(_THIS, SDL_Window *window)
