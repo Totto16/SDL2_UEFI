@@ -148,10 +148,24 @@
 
 [Packages]
   MdePkg/MdePkg.dec
+  StdLib/StdLib.dec
 
 [LibraryClasses]
+# MdePkg
   UefiLib
+# StdLib
   LibC
+  LibCType
+  LibLocale
+  LibMath
+  LibSignal
+  LibStdio
+  LibStdLib
+  LibString
+  LibTime
+  LibUefi
+  LibWchar
+  LibGdtoa
 
 [BuildOptions]
   *_*_*_CC_FLAGS  = -std=c11
