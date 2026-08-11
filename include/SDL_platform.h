@@ -249,14 +249,6 @@
 #endif
 
 // edk2 sdk related defines
-#ifdef TRUE
-#undef TRUE
-#endif
-
-#ifdef FALSE
-#undef FALSE
-#endif
-
 #ifdef ABS
 #undef ABS
 #endif
