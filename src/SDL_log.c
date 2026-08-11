@@ -27,10 +27,10 @@
 /* Simple log messages in SDL */
 
 #include "SDL_error.h"
-#include "SDL_log.h"
 #include "SDL_hints.h"
-#include "SDL_mutex.h"
+#include "SDL_log.h"
 #include "SDL_log_c.h"
+#include "SDL_mutex.h"
 
 #ifdef HAVE_STDIO_H
 #include <stdio.h>
@@ -101,7 +101,24 @@ static int SDL_android_priority[SDL_NUM_LOG_PRIORITIES] = {
     ANDROID_LOG_FATAL
 };
 #endif /* __ANDROID__ */
+#ifdef __UEFI__
 
+#if defined(NDEBUG)
+#define MDEPKG_NDEBUG 1
+#endif
+
+#include <Library/DebugLib.h>
+
+static int SDL_uefi_priority[SDL_NUM_LOG_PRIORITIES] = {
+    DEBUG_VERBOSE, // invalid, but using verbose
+    DEBUG_VERBOSE,
+    DEBUG_VERBOSE,
+    DEBUG_INFO,
+    DEBUG_WARN,
+    DEBUG_ERROR,
+    DEBUG_ERROR
+};
+#endif /* __UEFI__ */
 void SDL_LogInit(void)
 {
     if (!log_function_mutex) {
@@ -539,6 +556,10 @@ static void SDLCALL SDL_LogOutput(void *userdata, int category, SDL_LogPriority 
 
         SDL_free(tstr);
         SDL_small_free(output, isstack);
+    }
+#elif defined(__UEFI__)
+    {
+        DEBUG((SDL_uefi_priority[priority], "%s", message));
     }
 #elif defined(__ANDROID__)
     {
