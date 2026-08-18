@@ -214,7 +214,7 @@ CopyFramebuffertoUEFI(SDL_Surface *surface_fb, SDL_UEFI_HW_Backbuffer *hw_backbu
         SDL_Rect rect_hw = SDL_GetRectFromSurface(surface_hw);
 
         // blit the framebuffer into the hw backbuffer, so that we can use teh GOP call to just copy that data!
-        int result = SDL_BlitSurface(surface_fb, &rect_fb, surface_hw, &rect_hw);
+        int result = SDL_BlitScaled(surface_fb, &rect_fb, surface_hw, &rect_hw);
 
         if (result != 0) {
             return result;
