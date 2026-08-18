@@ -240,6 +240,10 @@
 #define __3DS__ 1
 #endif
 
+#if defined(EFIAPI) && !defined(__UEFI__)
+#error "EFIAPI defined, but '__UEFI__' is not defined"
+#endif
+
 #if defined(__UEFI__)
 // cross compile undefined
 #include "uefi/__hardware_caps.h"
