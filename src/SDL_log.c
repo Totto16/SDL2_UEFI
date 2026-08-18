@@ -559,7 +559,8 @@ static void SDLCALL SDL_LogOutput(void *userdata, int category, SDL_LogPriority 
     }
 #elif defined(__UEFI__)
     {
-        DEBUG((SDL_uefi_priority[priority], "%s", message));
+        // edk2 DEBUG uses %a for uint8_t* strings instead of L"" wide strings (which is %s)
+        DEBUG((SDL_uefi_priority[priority], "%a: %a\r\n", SDL_priority_prefixes[priority], message));
     }
 #elif defined(__ANDROID__)
     {
