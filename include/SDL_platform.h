@@ -245,9 +245,6 @@
 #endif
 
 #if defined(__UEFI__)
-// cross compile undefined
-#include "uefi/__hardware_caps.h"
-
 #ifdef __linux__
 #undef __linux__
 #endif

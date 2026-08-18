@@ -9,7 +9,7 @@
 #include "SDL_cpuinfo.h"
 /*#include <x86intrin.h>*/
 
-#ifdef __SSE2__
+#if defined(__SSE2__) && !defined(SDL_DISABLE_SSE2_INTRINSICS)
 
 /* SDL doesn't use these atm and compiling them adds seconds onto the build.  --ryan.
 #define SSE_FUNCTION_NAME	yuv420_rgb565_sse

@@ -337,7 +337,7 @@ static int scale_mat(const Uint32 *src, int src_w, int src_h, int src_pitch,
     return 0;
 }
 
-#if defined(__SSE2__)
+#if defined(__SSE2__) && !defined(SDL_DISABLE_SSE2_INTRINSICS)
 #define HAVE_SSE2_INTRINSICS
 #endif
 

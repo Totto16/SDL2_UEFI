@@ -28,7 +28,7 @@
 #define HAVE_NEON_INTRINSICS 1
 #endif
 
-#ifdef __SSE2__
+#if defined(__SSE2__) && !defined(SDL_DISABLE_SSE2_INTRINSICS)
 #define HAVE_SSE2_INTRINSICS
 #endif
 

@@ -57,7 +57,7 @@ _m_prefetch(void *__P)
 #include <intrin.h>
 
 #if defined(__UEFI__)
-#include "uefi/__hardware_caps.h"
+//do nothing
 #else
 #ifndef _WIN64
 #ifndef __MMX__

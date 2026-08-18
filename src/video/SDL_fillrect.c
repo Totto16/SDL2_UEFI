@@ -24,7 +24,7 @@
 #include "SDL_blit.h"
 #include "SDL_cpuinfo.h"
 
-#ifdef __SSE__
+#if defined(__SSE__) && !defined(SDL_DISABLE_SSE_INTRINSICS)
 /* *INDENT-OFF* */ /* clang-format off */
 
 #if defined(_MSC_VER) && !defined(__clang__)
@@ -385,7 +385,7 @@ int SDL_FillRects(SDL_Surface *dst, const SDL_Rect *rects, int count,
         {
             color |= (color << 8);
             color |= (color << 16);
-#ifdef __SSE__
+#if defined(__SSE__) && !defined(SDL_DISABLE_SSE_INTRINSICS)
             if (SDL_HasSSE()) {
                 fill_function = SDL_FillRect1SSE;
                 break;
@@ -398,7 +398,7 @@ int SDL_FillRects(SDL_Surface *dst, const SDL_Rect *rects, int count,
         case 2:
         {
             color |= (color << 16);
-#ifdef __SSE__
+#if defined(__SSE__) && !defined(SDL_DISABLE_SSE_INTRINSICS)
             if (SDL_HasSSE()) {
                 fill_function = SDL_FillRect2SSE;
                 break;
@@ -417,7 +417,7 @@ int SDL_FillRects(SDL_Surface *dst, const SDL_Rect *rects, int count,
 
         case 4:
         {
-#ifdef __SSE__
+#if defined(__SSE__) && !defined(SDL_DISABLE_SSE_INTRINSICS)
             if (SDL_HasSSE()) {
                 fill_function = SDL_FillRect4SSE;
                 break;

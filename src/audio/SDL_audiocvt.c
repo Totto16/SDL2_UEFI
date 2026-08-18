@@ -36,11 +36,11 @@
 #define HAVE_NEON_INTRINSICS 1
 #endif
 
-#ifdef __SSE__
+#if defined(__SSE__) && !defined(SDL_DISABLE_SSE_INTRINSICS)
 #define HAVE_SSE_INTRINSICS 1
 #endif
 
-#ifdef __SSE3__
+#if defined(__SSE3__) && !defined(SDL_DISABLE_SSE3_INTRINSICS)
 #define HAVE_SSE3_INTRINSICS 1
 #endif
 
