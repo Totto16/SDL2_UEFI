@@ -394,6 +394,15 @@ extern DECLSPEC void SDLCALL SDL_LogGetOutputFunction(SDL_LogOutputFunction *cal
 extern DECLSPEC void SDLCALL SDL_LogSetOutputFunction(SDL_LogOutputFunction callback, void *userdata);
 
 
+#if defined(__UEFI__)
+
+#include <Uefi/UefiBaseType.h>
+
+extern DECLSPEC const char* SDLCALL SDL_EFI_STATUS_To_String(EFI_STATUS Status);
+
+#endif
+
+
 /* Ends C function definitions when using C++ */
 #ifdef __cplusplus
 }
