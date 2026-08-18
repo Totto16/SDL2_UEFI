@@ -198,6 +198,9 @@ static int UEFI_Init_SDL_DisplayMode(EFI_GRAPHICS_OUTPUT_MODE_INFORMATION *Info,
     modedata->PixelsPerScanLine = Info->PixelsPerScanLine;
     modedata->ModeIdx = ModeIdx;
 
+    SDL_LogVerbose(SDL_LOG_CATEGORY_VIDEO,
+                   "Initiated SDL Display Mode: GOP Idx: %d dim: %dx%d fmt: %s px_per_scnl: %d", ModeIdx, sdl_mode->w, sdl_mode->h, SDL_GetPixelFormatName(sdl_mode->format), Info->PixelsPerScanLine);
+
     return 0;
 }
 
@@ -221,8 +224,8 @@ AddUEFIDisplay(SDL_VideoData *video_ref)
     }
 
     display.name = "UEFI GOP Full screen";
-    display.max_display_modes = video_ref->graphics_data.Gop->Mode->MaxMode - 1;
-    display.num_display_modes = video_ref->graphics_data.Gop->Mode->MaxMode - 1;
+    display.max_display_modes = video_ref->graphics_data.Gop->Mode->MaxMode;
+    display.num_display_modes = video_ref->graphics_data.Gop->Mode->MaxMode;
     display.desktop_mode = sdl_mode;
     display.current_mode = sdl_mode;
     display.orientation = SDL_ORIENTATION_UNKNOWN;
