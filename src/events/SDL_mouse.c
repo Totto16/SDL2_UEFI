@@ -234,7 +234,10 @@ void SDL_MousePostInit(void)
      * so that mouse grab and focus functionality will work.
      */
     if (!mouse->def_cursor) {
-        SDL_Surface *surface = SDL_CreateRGBSurface(0, 1, 1, 32, 0xFF, 0xFF, 0xFF, 0xFF);
+        //TODO: maybe just intialize the mouse before this, like all other platforms do, so this error wasn't noticed until sdl3
+        // this format is not recognized, fix it like in sdl3:
+        //see here: https://github.com/libsdl-org/SDL/blob/release-3.4.14/src/events/SDL_mouse.c#L302
+        SDL_Surface *surface = SDL_CreateRGBSurfaceWithFormat(0, 1, 1, 32, SDL_PIXELFORMAT_ARGB8888);
         if (surface) {
             SDL_memset(surface->pixels, 0, (size_t)surface->h * surface->pitch);
             SDL_SetDefaultCursor(SDL_CreateColorCursor(surface, 0, 0));
