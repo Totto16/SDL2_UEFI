@@ -22,23 +22,25 @@
 
 #ifdef SDL_VIDEO_DRIVER_UEFI
 
-#include "SDL_uefivideo.h"
-
 #include "SDL_uefievents.h"
 #include "SDL_uefimouse.h"
+#include "SDL_uefivideo.h"
 
 #include <SDL_keyboard_c.h>
 #include <SDL_scancode.h>
-#include <stdbool.h>
 
 int UEFI_InitKeyboard(_THIS, SDL_VideoData *driverdata)
 {
 
-    EFI_SIMPLE_TEXT_INPUT_EX_PROTOCOL *InputEx;
+    SDL_TextData *text_data = &(driverdata->text_data);
+
+    *text_data = (SDL_TextData){ .InputEx = NULL, .supports_detailed_states = false };
 
     if (!gBS) {
         return SDL_SetError("gBS not set");
     }
+
+    EFI_SIMPLE_TEXT_INPUT_EX_PROTOCOL *InputEx;
 
     EFI_STATUS Status = gBS->LocateProtocol(
         &gEfiSimpleTextInputExProtocolGuid,
@@ -48,6 +50,8 @@ int UEFI_InitKeyboard(_THIS, SDL_VideoData *driverdata)
     if (EFI_ERROR(Status)) {
         return SDL_SetError("UEFI SimpleTextInputEx Protocol not available");
     }
+
+    text_data->InputEx = InputEx;
 
     Status = InputEx->Reset(InputEx, false);
 
@@ -61,10 +65,18 @@ int UEFI_InitKeyboard(_THIS, SDL_VideoData *driverdata)
     Status = InputEx->SetState(InputEx, &KeyToggleState);
 
     if (EFI_ERROR(Status)) {
-        return SDL_SetError("Input device doesn't work properly: can't receive more detailed key states");
+        text_data->supports_detailed_states = false;
+
+        if (Status == EFI_UNSUPPORTED) {
+            SDL_LogWarn(SDL_LOG_CATEGORY_INPUT,
+                        "Can't receive more detailed key states: %s\n", SDL_EFI_STATUS_To_String(Status));
+        } else {
+            return SDL_SetError("Input device doesn't work properly: can't receive more detailed key states");
+        }
+    } else {
+        text_data->supports_detailed_states = true;
     }
 
-    driverdata->InputEx = InputEx;
     return 0;
 }
 
@@ -284,7 +296,6 @@ static void UEFI_Push_Key_Event(
             SDL_LogError(SDL_LOG_CATEGORY_INPUT,
                          "Error in reading key text, can't convert UTF-16 to UTF-8\n");
             return;
-            return;
         }
 
         *end = '\0';
@@ -318,11 +329,13 @@ void UEFI_PumpKeyboardEvents(_THIS)
 {
     SDL_VideoData *driverdata = (SDL_VideoData *)_this->driverdata;
 
-    EFI_SIMPLE_TEXT_INPUT_EX_PROTOCOL *InputEx = driverdata->InputEx;
+    EFI_SIMPLE_TEXT_INPUT_EX_PROTOCOL *InputEx = driverdata->text_data.InputEx;
 
     EFI_KEY_DATA KeyData;
 
     EFI_STATUS Status = InputEx->ReadKeyStrokeEx(InputEx, &KeyData);
+
+    // TODO use supports_detailed_states boolean
 
     if (Status == EFI_NOT_READY) {
         // no keypress ready

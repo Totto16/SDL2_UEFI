@@ -41,6 +41,10 @@ int UEFI_InitMouse(_THIS, SDL_VideoData *driverdata)
     // abs is more accurate, as relative may drift, when absolute is accurate
     // TODO: do that ^^^^
 
+    if (!gBS) {
+        return SDL_SetError("gBS not set");
+    }
+
     EFI_SIMPLE_POINTER_PROTOCOL *SimpleMouse;
 
     EFI_STATUS Status = gBS->LocateProtocol(

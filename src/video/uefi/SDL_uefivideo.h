@@ -28,26 +28,27 @@
 #include <Library/MemoryAllocationLib.h>
 #include <Library/UefiBootServicesTableLib.h>
 #include <Protocol/GraphicsOutput.h>
-#include <Protocol/SimpleTextInEx.h>
 
 #include "../SDL_sysvideo.h"
+#include "./SDL_uefivideo_internal.h"
 
-typedef struct SDL_VideoData SDL_VideoData;
-
+#include "./SDL_uefievents.h"
 #include "./SDL_uefimouse.h"
+
+typedef struct SDL_GraphicsData
+{
+    EFI_GRAPHICS_OUTPUT_PROTOCOL *Gop;
+    VOID *HWFrameBuffer;
+} SDL_GraphicsData;
 
 struct SDL_VideoData
 {
-
     // graphics section
-    EFI_GRAPHICS_OUTPUT_PROTOCOL *Gop;
-
-    VOID *HWFrameBuffer;
+    SDL_GraphicsData graphics_data;
     // text input section
-    EFI_SIMPLE_TEXT_INPUT_EX_PROTOCOL *InputEx;
+    SDL_TextData text_data;
     // mouse input section
     SDL_MouseData mouse_data;
-    int todo;
 };
 
 typedef struct SDL_WindowData

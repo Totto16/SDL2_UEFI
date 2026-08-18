@@ -23,6 +23,7 @@
 #define SDL_uefimouse_h_
 
 #include "../SDL_sysvideo.h"
+#include "SDL_uefivideo_internal.h"
 
 #include <Protocol/AbsolutePointer.h>
 #include <Protocol/SimplePointer.h>

@@ -96,7 +96,7 @@ CopyFramebuffertoUEFI(SDL_Surface *surface, SDL_VideoData *video_data, ModeDrive
 
     for (UINT32 y = 0; y < mode_data->VerticalResolution; ++y) {
         const uint32_t *source = ((uint32_t *)surface->pixels) + (y * surface->w);
-        uint32_t *dest = ((uint32_t *)video_data->HWFrameBuffer) + (y * mode_data->PixelsPerScanLine);
+        uint32_t *dest = ((uint32_t *)video_data->graphics_data.HWFrameBuffer) + (y * mode_data->PixelsPerScanLine);
         SDL_memcpy(dest, source, ValidLineSize);
     }
 

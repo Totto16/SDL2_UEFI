@@ -18,30 +18,13 @@
      misrepresented as being the original software.
   3. This notice may not be removed or altered from any source distribution.
 */
-
-#ifndef SDL_uefievents_h_
-#define SDL_uefievents_h_
-
 #include "../../SDL_internal.h"
-#include "../SDL_sysvideo.h"
-#include "SDL_uefivideo_internal.h"
 
-#include <Protocol/SimpleTextInEx.h>
-#include <stdbool.h>
+#ifndef SDL_uefivideo_internal_h_
+#define SDL_uefivideo_internal_h_
 
-/* Functions to be exported */
-extern int UEFI_InitKeyboard(_THIS, struct SDL_VideoData *driverdata);
-extern void UEFI_QuitKeyboard(_THIS);
-extern void UEFI_PumpKeyboardEvents(_THIS);
+typedef struct SDL_VideoData SDL_VideoData;
 
-extern void UEFI_PumpEvents(_THIS);
-
-typedef struct SDL_TextData
-{
-    EFI_SIMPLE_TEXT_INPUT_EX_PROTOCOL *InputEx;
-    bool supports_detailed_states;
-} SDL_TextData;
-
-#endif /* SDL_uefievents_h_ */
+#endif /* SDL_uefivideo_internal_h_ */
 
 /* vi: set sts=4 ts=4 sw=4 expandtab: */

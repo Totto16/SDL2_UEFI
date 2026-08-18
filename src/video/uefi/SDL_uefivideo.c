@@ -125,6 +125,7 @@ static int UEFI_VideoInit(_THIS)
 {
 
     SDL_VideoData *driverdata = (SDL_VideoData *)_this->driverdata;
+    SDL_GraphicsData *graphics_data = &(driverdata->graphics_data);
 
     EFI_GRAPHICS_OUTPUT_PROTOCOL *Gop;
 
@@ -141,7 +142,7 @@ static int UEFI_VideoInit(_THIS)
         return SDL_SetError("UEFI GOP not available");
     }
 
-    driverdata->Gop = Gop;
+    graphics_data->Gop = Gop;
 
     if (Gop->Mode->SizeOfInfo != sizeof(EFI_GRAPHICS_OUTPUT_MODE_INFORMATION)) {
         SDL_LogError(SDL_LOG_CATEGORY_VIDEO,
@@ -150,7 +151,7 @@ static int UEFI_VideoInit(_THIS)
         return SDL_SetError("GOP has outdated Info struct defintion");
     }
 
-    driverdata->HWFrameBuffer = (VOID *)(UINTN)Gop->Mode->FrameBufferBase;
+    graphics_data->HWFrameBuffer = (VOID *)(UINTN)Gop->Mode->FrameBufferBase;
 
     AddUEFIDisplay(driverdata);
 
@@ -214,14 +215,14 @@ AddUEFIDisplay(SDL_VideoData *video_ref)
     display_driver_data->video_ref = video_ref;
 
     SDL_DisplayMode sdl_mode;
-    if (UEFI_Init_SDL_DisplayMode(video_ref->Gop->Mode->Info, &sdl_mode, video_ref->Gop->Mode->Mode) != 0) {
+    if (UEFI_Init_SDL_DisplayMode(video_ref->graphics_data.Gop->Mode->Info, &sdl_mode, video_ref->graphics_data.Gop->Mode->Mode) != 0) {
         SDL_free(display_driver_data);
         return SDL_SetError("Can't init SDL Display mode");
     }
 
     display.name = "UEFI GOP Full screen";
-    display.max_display_modes = video_ref->Gop->Mode->MaxMode - 1;
-    display.num_display_modes = video_ref->Gop->Mode->MaxMode - 1;
+    display.max_display_modes = video_ref->graphics_data.Gop->Mode->MaxMode - 1;
+    display.num_display_modes = video_ref->graphics_data.Gop->Mode->MaxMode - 1;
     display.desktop_mode = sdl_mode;
     display.current_mode = sdl_mode;
     display.orientation = SDL_ORIENTATION_UNKNOWN;
@@ -239,15 +240,17 @@ static void UEFI_VideoQuit(_THIS)
     UEFI_QuitMouse(_this);
     UEFI_QuitKeyboard(_this);
 
-    driverdata->Gop = NULL;
-    driverdata->HWFrameBuffer = NULL;
+    SDL_GraphicsData *graphics_data = &(driverdata->graphics_data);
+
+    graphics_data->Gop = NULL;
+    graphics_data->HWFrameBuffer = NULL;
 }
 
 static void UEFI_GetDisplayModes(_THIS, SDL_VideoDisplay *display)
 {
     DisplayDriverData *displaydata = display->driverdata;
     SDL_VideoData *video_ref = displaydata->video_ref;
-    EFI_GRAPHICS_OUTPUT_PROTOCOL *Gop = video_ref->Gop;
+    EFI_GRAPHICS_OUTPUT_PROTOCOL *Gop = video_ref->graphics_data.Gop;
 
     for (UINT32 ModeIdx = 0; ModeIdx < Gop->Mode->MaxMode; ++ModeIdx) {
         EFI_GRAPHICS_OUTPUT_MODE_INFORMATION *Info = NULL;
@@ -301,7 +304,7 @@ static int UEFI_SetDisplayMode(_THIS, SDL_VideoDisplay *display, SDL_DisplayMode
 
     DisplayDriverData *displaydata = display->driverdata;
     SDL_VideoData *video_ref = displaydata->video_ref;
-    EFI_GRAPHICS_OUTPUT_PROTOCOL *Gop = video_ref->Gop;
+    EFI_GRAPHICS_OUTPUT_PROTOCOL *Gop = video_ref->graphics_data.Gop;
     ModeDriverData *modedata = mode->driverdata;
 
     EFI_STATUS Status = Gop->SetMode(Gop, modedata->ModeIdx);
@@ -310,7 +313,7 @@ static int UEFI_SetDisplayMode(_THIS, SDL_VideoDisplay *display, SDL_DisplayMode
     }
 
     // not sure if the buffer address changes on mode change, but if it does, we update the address here (this works, as we only have on e display per video (device))
-    video_ref->HWFrameBuffer = (VOID *)(UINTN)Gop->Mode->FrameBufferBase;
+    video_ref->graphics_data.HWFrameBuffer = (VOID *)(UINTN)Gop->Mode->FrameBufferBase;
 
     return 0;
 }
