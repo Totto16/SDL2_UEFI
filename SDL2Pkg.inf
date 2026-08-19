@@ -149,13 +149,14 @@
 [Packages]
   MdePkg/MdePkg.dec
   StdLib/StdLib.dec
+  LibraryPkg/SupportLib/SupportLib.dec
 
 [LibraryClasses]
 # MdePkg
   UefiLib
 # StdLib
   LibC
-  LibCType
+  LibCtype
   LibLocale
   LibMath
   LibSignal
@@ -166,6 +167,9 @@
   LibUefi
   LibWchar
   LibGdtoa
+# Support library (Common custom functionality)
+  LibUEfiSupportNanosleep
+  LibUEfiSupportClock
 
 [BuildOptions]
   *_*_*_CC_FLAGS  = -std=c11

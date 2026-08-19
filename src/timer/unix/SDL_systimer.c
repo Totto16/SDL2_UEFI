@@ -74,6 +74,10 @@ static SDL_bool has_monotonic_time = SDL_FALSE;
 static struct timeval start_tv;
 static SDL_bool ticks_started = SDL_FALSE;
 
+#if defined(__UEFI__)
+#include <UEfiTimeSupport.h>
+#endif
+
 void SDL_TicksInit(void)
 {
     if (ticks_started) {
