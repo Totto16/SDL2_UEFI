@@ -149,7 +149,7 @@
 [Packages]
   MdePkg/MdePkg.dec
   StdLib/StdLib.dec
-  LibraryPkg/SupportLib/SupportLib.dec
+  SupportLib/SupportLib.dec
 
 [LibraryClasses]
 # MdePkg
