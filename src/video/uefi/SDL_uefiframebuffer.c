@@ -73,7 +73,7 @@ static SDL_UEFI_HW_Backbuffer *SDL_UEFI_Create_SDL_UEFI_HW_Backbuffer(const SDL_
         return NULL;
     }
 
-    UINT32 pitch = mode_data->PixelsPerScanLine * sizeof(uint32_t);
+    UINT32 pitch = mode_data->PixelsPerScanLine * mode_data->PixelSizeInBytes;
 
     void *data = SDL_malloc(pitch * mode->h);
     if (!data) {
@@ -82,18 +82,7 @@ static SDL_UEFI_HW_Backbuffer *SDL_UEFI_Create_SDL_UEFI_HW_Backbuffer(const SDL_
     }
     hw_backbuffer->data = data;
 
-    // the format needs to be EFI_GRAPHICS_OUTPUT_BLT_PIXEL
-    //     typedef struct {
-    //  UINT8                        Blue;
-    //  UINT8                        Green;
-    //  UINT8                        Red;
-    //  UINT8                        Reserved;
-    // } EFI_GRAPHICS_OUTPUT_BLT_PIXEL;
-
-    // TODO: does this depend on endianess??
-    SDL_PixelFormatEnum efi_blt_format = SDL_PIXELFORMAT_BGRX8888;
-
-    SDL_Surface *surface = SDL_CreateRGBSurfaceWithFormatFrom(hw_backbuffer->data, mode->w, mode->h, SDL_BITSPERPIXEL(efi_blt_format), pitch, efi_blt_format);
+    SDL_Surface *surface = SDL_CreateRGBSurfaceWithFormatFrom(hw_backbuffer->data, mode->w, mode->h, SDL_BITSPERPIXEL(mode->format), pitch, mode->format);
 
     if (!surface) {
         SDL_OutOfMemory();
@@ -168,7 +157,7 @@ int SDL_UEFI_UpdateWindowFramebuffer(_THIS, SDL_Window *window, const SDL_Rect *
     SDL_VideoData *video_data = (SDL_VideoData *)_this->driverdata;
 
     if (surface_fb->format->BytesPerPixel != sizeof(uint32_t)) {
-        return SDL_SetError("%s: Invalid BytesPerPixel: %d.", __func__, surface_fb->format->BytesPerPixel);
+        return SDL_SetError("%s: Invalid BytesPerPixel: %d. (only support 32 bit pixels atm)", __func__, surface_fb->format->BytesPerPixel);
     }
 
     SDL_DisplayMode mode;

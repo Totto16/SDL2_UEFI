@@ -62,6 +62,7 @@ typedef struct
     UINT32 VerticalResolution;
     EFI_GRAPHICS_PIXEL_FORMAT PixelFormat;
     UINT32 PixelsPerScanLine;
+    UINT8 PixelSizeInBytes;
     UINT32 ModeIdx;
 } ModeDriverData;
 

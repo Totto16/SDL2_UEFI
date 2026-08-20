@@ -45,19 +45,27 @@ typedef struct
     SDL_VideoData *video_ref;
 } DisplayDriverData;
 
-static SDL_PixelFormatEnum UEFI_get_SDL_Format(EFI_GRAPHICS_PIXEL_FORMAT gop_format)
+typedef UINT32 UEfiPixelElement32;
+
+static SDL_PixelFormatEnum UEFI_get_SDL_Format(EFI_GRAPHICS_PIXEL_FORMAT gop_format, OUT UINT8 *PixelSizeInBytes)
 {
+    // NOTE: these modes are endian agnostic, as they should be, as the hardware buffer needs those in a struct order of a certain type,
+    // so the endianess matters
+
     switch (gop_format) {
     case PixelRedGreenBlueReserved8BitPerColor:
     {
-        return SDL_PIXELFORMAT_BGRX8888;
+        *PixelSizeInBytes = sizeof(UEfiPixelElement32);
+        return SDL_PIXELFORMAT_RGBX32;
     }
     case PixelBlueGreenRedReserved8BitPerColor:
     {
-        return SDL_PIXELFORMAT_RGBX8888;
+        *PixelSizeInBytes = sizeof(UEfiPixelElement32);
+        return SDL_PIXELFORMAT_BGRX32;
     }
     default:
     {
+        *PixelSizeInBytes = 0;
         return SDL_PIXELFORMAT_UNKNOWN;
     }
     }
@@ -183,9 +191,11 @@ static int UEFI_Init_SDL_DisplayMode(EFI_GRAPHICS_OUTPUT_MODE_INFORMATION *Info,
     sdl_mode->h = Info->VerticalResolution;
     // we can't get the current and supported refresh rate, just assume 60 Hz
     sdl_mode->refresh_rate = 60;
-    sdl_mode->format = UEFI_get_SDL_Format(Info->PixelFormat);
 
-    if (sdl_mode->format == SDL_PIXELFORMAT_UNKNOWN) {
+    UINT8 PixelSizeInBytes = 0;
+    sdl_mode->format = UEFI_get_SDL_Format(Info->PixelFormat, &PixelSizeInBytes);
+
+    if (sdl_mode->format == SDL_PIXELFORMAT_UNKNOWN || PixelSizeInBytes == 0) {
         SDL_free(modedata);
         return 1;
     }
@@ -196,6 +206,7 @@ static int UEFI_Init_SDL_DisplayMode(EFI_GRAPHICS_OUTPUT_MODE_INFORMATION *Info,
     modedata->VerticalResolution = Info->VerticalResolution;
     modedata->PixelFormat = Info->PixelFormat;
     modedata->PixelsPerScanLine = Info->PixelsPerScanLine;
+    modedata->PixelSizeInBytes = PixelSizeInBytes;
     modedata->ModeIdx = ModeIdx;
 
     SDL_LogVerbose(SDL_LOG_CATEGORY_VIDEO,
