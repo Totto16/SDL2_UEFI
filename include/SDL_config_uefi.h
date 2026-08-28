@@ -52,7 +52,10 @@
 #define HAVE_MALLOC        1
 #define HAVE_POLL          1
 #define HAVE_LIMITS_H      1
+#define HAVE_ATAN          1
 #define HAVE_ATAN2         1
+#define HAVE_POW           1
+#define HAVE_FMOD          1
 #define HAVE_NANOSLEEP     1
 #define HAVE_CLOCK_GETTIME 1
 
